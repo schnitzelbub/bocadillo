@@ -12,7 +12,7 @@ from starlette.testclient import TestClient
 from uvicorn.main import get_logger, run
 from uvicorn.reloaders.statreload import StatReload
 
-from . import hooks
+from . import hooks, validation
 from .app_types import (
     ASGIApp,
     ASGIAppInstance,
@@ -24,7 +24,7 @@ from .app_types import (
 )
 from .compat import WSGIApp
 from .constants import DEFAULT_CORS_CONFIG
-from .error_handlers import error_to_text, error_to_media
+from .error_handlers import error_to_media, error_to_text
 from .errors import HTTPError, HTTPErrorMiddleware, ServerErrorMiddleware
 from .media import Media
 from .meta import DocsMeta
@@ -35,7 +35,6 @@ from .response import Response
 from .routing import HTTPRouter, WebSocketRouter
 from .staticfiles import static
 from .templates import TemplatesMixin
-from .validation import validate
 
 
 class API(TemplatesMixin, metaclass=DocsMeta):
@@ -94,21 +93,26 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         Can be one of the supported media types.
         Defaults to `"application/json"`.
         See also [Media](../guides/http/media.md).
+    json_validation_backend (str):
+        Which JSON validation backend will be used by `.validate()`.
+        Defaults to `"jsonschema"`.
     """
+
+    json_validation_backend = validation.JSONValidationBackend()
 
     def __init__(
         self,
         templates_dir: str = "templates",
-        static_dir: Optional[str] = "static",
-        static_root: Optional[str] = "static",
-        allowed_hosts: List[str] = None,
+        static_dir: str = "static",
+        static_root: str = "static",
+        allowed_hosts: Optional[List[str]] = None,
         enable_cors: bool = False,
-        cors_config: dict = None,
+        cors_config: Optional[dict] = None,
         enable_hsts: bool = False,
         enable_gzip: bool = False,
         gzip_min_size: int = 1024,
-        media_type: Optional[str] = Media.JSON,
-        default_json_backend: Optional[str] = "jsonschema",
+        media_type: str = Media.JSON,
+        json_validation_backend: str = "jsonschema",
     ):
         super().__init__(templates_dir=templates_dir)
 
@@ -135,7 +139,8 @@ class API(TemplatesMixin, metaclass=DocsMeta):
             self.mount(static_root, static(static_dir))
 
         # JSON validation
-        self.default_json_backend = default_json_backend
+        self.json_validation_backend = json_validation_backend
+        self.json_validation_backends = {"jsonschema": validation.jsonschema}
 
         # Media handlers
         self._media = Media(media_type=media_type)
@@ -358,7 +363,26 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         raise Redirection(url=url, permanent=permanent)
 
     def validate(self, schema: Any, backend: str = None):
-        return validate(schema, backend=backend or self.default_json_backend)
+        """Validate inbound JSON with the given schema.
+
+        This decorator is aimed at decorating a view function.
+
+        # Parameters
+        schema (any): a validation schema.
+        backend (str):
+            which JSON validation backend to use.
+            Defaults to `default_json_validation_backend`.
+        """
+        if backend is None:
+            backend = self.json_validation_backend
+        print(backend)
+        try:
+            hook_factory = self.json_validation_backends[backend]
+        except KeyError as e:
+            raise validation.UnknownValidationBackend(backend) from e
+        else:
+            validate_json = hook_factory(schema)
+            return hooks.before(validate_json)
 
     def add_middleware(self, middleware_cls, **kwargs):
         """Register a middleware class.
