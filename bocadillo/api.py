@@ -24,7 +24,7 @@ from .app_types import (
 )
 from .compat import WSGIApp
 from .constants import DEFAULT_CORS_CONFIG
-from .error_handlers import error_to_media, error_to_text
+from .error_handlers import error_to_text
 from .errors import HTTPError, HTTPErrorMiddleware, ServerErrorMiddleware
 from .media import Media
 from .meta import DocsMeta
@@ -375,13 +375,13 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         """
         if backend is None:
             backend = self.json_validation_backend
-        print(backend)
+
         try:
-            hook_factory = self.json_validation_backends[backend]
+            build_validator = self.json_validation_backends[backend]
         except KeyError as e:
             raise validation.UnknownValidationBackend(backend) from e
         else:
-            validate_json = hook_factory(schema)
+            validate_json = build_validator(schema)
             return hooks.before(validate_json)
 
     def add_middleware(self, middleware_cls, **kwargs):

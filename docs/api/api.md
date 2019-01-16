@@ -2,7 +2,7 @@
 
 ## API
 ```python
-API(self, templates_dir: str = 'templates', static_dir: Union[str, NoneType] = 'static', static_root: Union[str, NoneType] = 'static', allowed_hosts: List[str] = None, enable_cors: bool = False, cors_config: dict = None, enable_hsts: bool = False, enable_gzip: bool = False, gzip_min_size: int = 1024, media_type: Union[str, NoneType] = 'application/json')
+API(self, templates_dir: str = 'templates', static_dir: str = 'static', static_root: str = 'static', allowed_hosts: Union[List[str], NoneType] = None, enable_cors: bool = False, cors_config: Union[dict, NoneType] = None, enable_hsts: bool = False, enable_gzip: bool = False, gzip_min_size: int = 1024, media_type: str = 'application/json', json_validation_backend: str = 'jsonschema')
 ```
 The all-mighty API class.
 
@@ -61,6 +61,9 @@ __Parameters__
     Can be one of the supported media types.
     Defaults to `"application/json"`.
     See also [Media](../guides/http/media.md).
+- __json_validation_backend (str)__:
+    Which JSON validation backend will be used by `.validate()`.
+    Defaults to `"jsonschema"`.
 
 ### media_handlers
 The dictionary of supported media handlers.
@@ -248,6 +251,21 @@ __Raises__
 __See Also__
 
 - [Redirecting](../guides/http/redirecting.md)
+
+### validate
+```python
+API.validate(self, schema: Any, backend: str = None)
+```
+Validate inbound JSON with the given schema.
+
+This decorator is aimed at decorating a view function.
+
+__Parameters__
+
+- __schema (any)__: a validation schema.
+- __backend (str)__:
+    which JSON validation backend to use.
+    Defaults to `default_json_validation_backend`.
 
 ### add_middleware
 ```python
