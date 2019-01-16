@@ -265,7 +265,7 @@ __Parameters__
 - __schema (any)__: a validation schema.
 - __backend (str)__:
     which JSON validation backend to use.
-    Defaults to `default_json_validation_backend`.
+    Defaults to `json_validation_backend`.
 
 ### add_middleware
 ```python

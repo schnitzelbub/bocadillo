@@ -371,7 +371,7 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         schema (any): a validation schema.
         backend (str):
             which JSON validation backend to use.
-            Defaults to `default_json_validation_backend`.
+            Defaults to `json_validation_backend`.
         """
         if backend is None:
             backend = self.json_validation_backend
