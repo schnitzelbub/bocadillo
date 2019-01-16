@@ -6,15 +6,6 @@ from jsonschema import SchemaError
 
 
 @pytest.fixture
-def schema():
-    return {
-        "title": "Product",
-        "properties": {"price": {"type": "number"}},
-        "required": ["price"],
-    }
-
-
-@pytest.fixture
 def json_api(api: API):
     # NOTE: using JSON validation does not enforce that
     # HTTP errors are returned as media.
@@ -39,7 +30,13 @@ def test_unknown_backend_raises_error(json_api: API):
     assert ctx.value.args[0] == "foobar"
 
 
-def test_validate_from_json_schema(json_api: API, schema):
+def test_validate_from_json_schema(json_api: API):
+    schema = {
+        "title": "Product",
+        "properties": {"price": {"type": "number"}},
+        "required": ["price"],
+    }
+
     @json_api.route("/")
     class Products:
         @json_api.validate(schema, backend="jsonschema")
@@ -54,7 +51,7 @@ def test_validate_from_json_schema(json_api: API, schema):
     assert all(s in errors[0] for s in ("price", "required"))
 
 
-def test_jsonschema_schema_is_validated(json_api: API, schema):
+def test_jsonschema_schema_is_validated(json_api: API):
     with pytest.raises(SchemaError):
         json_api.validate({"properties": "fjkh"}, backend="jsonschema")
 
