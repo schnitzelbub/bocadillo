@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0844358b8ed154cee80817419c204423708f719d6ea0d078905c897e76ea26ab"
+            "sha256": "32b086a198287af24ac2f77f8f5dc53bb4ca88c53a498a9627787293190bb4fa"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -340,11 +340,11 @@
         },
         "jsonschema": {
             "hashes": [
-                "sha256:a32131e60980cbf9077aa37ead88e952f903690c141eb722154c7d4c50d08487",
-                "sha256:c2480b09c6431a44d6c5948bd2a882b1c299e125af858725ae0edbe9588b858f"
+                "sha256:000e68abd33c972a5248544925a0cae7d1125f9bf6c58280d37546b946769a08",
+                "sha256:6ff5f3180870836cae40f06fa10419f557208175f13ad7bc26caa77beb1f6e02"
             ],
             "index": "pypi",
-            "version": "==3.0.0a5"
+            "version": "==2.6.0"
         },
         "lazy-object-proxy": {
             "hashes": [
@@ -498,12 +498,6 @@
             ],
             "index": "pypi",
             "version": "==2.2.2"
-        },
-        "pyrsistent": {
-            "hashes": [
-                "sha256:5a3827d57ad3e46820e5ee4ed5b9e0ee7bc4686df6634a7368bc1863a5c48a77"
-            ],
-            "version": "==0.14.9"
         },
         "pytest": {
             "hashes": [

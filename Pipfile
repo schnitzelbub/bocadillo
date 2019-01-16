@@ -21,7 +21,7 @@ pre-commit = "*"
 pydoc-markdown = "*"
 pylint = "*"
 bocadillo = {editable = true,path = "."}
-jsonschema = "*"
+jsonschema = "<3.0"
 
 [requires]
 python_version = "3.7"

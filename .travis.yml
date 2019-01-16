@@ -15,7 +15,7 @@ jobs:
       python: "3.6"
       install:
         - pip install .
-        - pip install jsonschema
+        - pip install jsonschema<3.0
       script: pytest
 
     - stage: test
@@ -27,7 +27,7 @@ jobs:
       python: "3.7"
       install:
         - pip install .
-        - pip install jsonschema codecov pytest-cov
+        - pip install "jsonschema<3.0" codecov pytest-cov
       script: pytest --cov=./
       after_success: codecov
 

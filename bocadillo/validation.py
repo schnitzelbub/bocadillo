@@ -37,7 +37,7 @@ def jsonschema(schema: Schema) -> Validator:
     """Validation backend backed by `jsonschema`.
 
     # Parameters
-    schema (dict): a schema compliant with jsonschema-draft7.
+    schema (dict): a schema compliant with jsonschema-draft4.
 
     # Returns
     validator (callable): a hook function to be used in a before hook.
@@ -49,7 +49,7 @@ def jsonschema(schema: Schema) -> Validator:
         If the provided `schema` is invalid.
     """
     try:
-        from jsonschema.validators import Draft7Validator
+        from jsonschema.validators import validators
         from jsonschema import SchemaError
     except ImportError as e:
         raise ImportError(
@@ -57,14 +57,16 @@ def jsonschema(schema: Schema) -> Validator:
             "'jsonschema' validation backend"
         ) from e
 
+    # TODO: watch for more recent drafts when v3.0 comes out.
+    validator = validators["draft4"]
     try:
-        Draft7Validator.check_schema(schema)
+        validator.check_schema(schema)
     except SchemaError:
         raise
 
     async def validate(req: Request, res: Response, params: dict):
         json = await req.json()
-        errors = list(Draft7Validator(schema).iter_errors(json))
+        errors = list(validator(schema).iter_errors(json))
         if errors:
             raise ValidationError(errors=[e.message for e in errors])
 
