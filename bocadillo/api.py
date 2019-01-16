@@ -1,6 +1,6 @@
 import os
 from functools import partial
-from typing import Any, Dict, List, Optional, Type, Union, Callable, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -12,19 +12,20 @@ from starlette.testclient import TestClient
 from uvicorn.main import get_logger, run
 from uvicorn.reloaders.statreload import StatReload
 
+from . import hooks
 from .app_types import (
     ASGIApp,
     ASGIAppInstance,
-    Scope,
-    Receive,
-    Send,
-    EventHandler,
     ErrorHandler,
+    EventHandler,
+    Receive,
+    Scope,
+    Send,
 )
 from .compat import WSGIApp
 from .constants import DEFAULT_CORS_CONFIG
-from .error_handlers import error_to_text
-from .errors import ServerErrorMiddleware, HTTPErrorMiddleware, HTTPError
+from .error_handlers import error_to_text, error_to_media
+from .errors import HTTPError, HTTPErrorMiddleware, ServerErrorMiddleware
 from .media import Media
 from .meta import DocsMeta
 from .recipes import RecipeBase
@@ -34,6 +35,7 @@ from .response import Response
 from .routing import HTTPRouter, WebSocketRouter
 from .staticfiles import static
 from .templates import TemplatesMixin
+from .validation import validate
 
 
 class API(TemplatesMixin, metaclass=DocsMeta):
@@ -106,6 +108,7 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         enable_gzip: bool = False,
         gzip_min_size: int = 1024,
         media_type: Optional[str] = Media.JSON,
+        default_json_backend: Optional[str] = "jsonschema",
     ):
         super().__init__(templates_dir=templates_dir)
 
@@ -130,6 +133,9 @@ class API(TemplatesMixin, metaclass=DocsMeta):
             if static_root is None:
                 static_root = static_dir
             self.mount(static_root, static(static_dir))
+
+        # JSON validation
+        self.default_json_backend = default_json_backend
 
         # Media handlers
         self._media = Media(media_type=media_type)
@@ -350,6 +356,9 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         else:
             assert url is not None, "url is expected if no route name is given"
         raise Redirection(url=url, permanent=permanent)
+
+    def validate(self, schema: Any, backend: str = None):
+        return validate(schema, backend=backend or self.default_json_backend)
 
     def add_middleware(self, middleware_cls, **kwargs):
         """Register a middleware class.

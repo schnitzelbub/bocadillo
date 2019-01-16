@@ -8,5 +8,6 @@ from .views import view
 from .websockets import WebSocket, WebSocketDisconnect
 from .response import Response
 from .request import Request
+from .validation import ValidationError
 
 __version__ = "0.9.1"
