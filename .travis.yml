@@ -15,7 +15,7 @@ jobs:
       python: "3.6"
       install:
         - pip install .
-        - pip install jsonschema<3.0
+        - pip install "jsonschema<3.0"
       script: pytest
 
     - stage: test
