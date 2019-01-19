@@ -4,7 +4,8 @@ from typing import NamedTuple
 import pytest
 from click.testing import CliRunner
 
-from bocadillo import API
+from bocadillo import API, HTTPError
+from bocadillo.error_handlers import error_to_media
 from .utils import RouteBuilder
 
 
@@ -23,6 +24,12 @@ def api():
 
     _api.client.websocket_connect = websocket_connect
     return _api
+
+
+@pytest.fixture
+def jsonapi(api: API):
+    api.add_error_handler(HTTPError, error_to_media)
+    return api
 
 
 @pytest.fixture

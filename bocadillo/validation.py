@@ -1,14 +1,13 @@
-from typing import Awaitable, Callable, List, Dict, Union, Optional
+from importlib import import_module
+from typing import Dict, List, Optional, Union, Any
 
 from . import hooks
 from .errors import HTTPError
 from .request import Request
 from .response import Response
 
-
 Validator = hooks.HookFunction
 Schema = Dict
-ValidationBackend = Callable[[Schema], Validator]
 
 
 class ValidationError(HTTPError):
@@ -29,51 +28,125 @@ class ValidationError(HTTPError):
         super().__init__(400, detail={"errors": errors})
 
 
+class SchemaError(ValueError):
+    """Raised when validating the schema itself fails."""
+
+
 class UnknownValidationBackend(ValueError):
     """Raised when trying to use an unsupported JSON validation backend."""
 
 
-def jsonschema(schema: Schema) -> Validator:
-    """Validation backend backed by `jsonschema`.
+class _Meta(type):
 
-    # Parameters
-    schema (dict): a schema compliant with jsonschema-draft4.
+    classes = []
 
-    # Returns
-    validator (callable): a hook function to be used in a before hook.
+    def __new__(mcs, name, bases, namespace):
+        root = namespace.pop("root", False)
+        cls = super().__new__(mcs, name, bases, namespace)
+        if not root:
+            mcs.classes.append(cls)
+        return cls
 
-    # Raises
-    ImportError:
-        If `jsonschema` is not installed.
-    jsonschema.SchemaError:
-        If the provided `schema` is invalid.
-    """
-    try:
+
+class ValidationBackend(metaclass=_Meta):
+    """Base validation backend."""
+
+    root = True
+    name: str
+    module_name: str
+
+    def __init__(self):
+        self.module = None
+        self.validator: Any = None
+
+    def load(self):
+        try:
+            self.module = import_module(self.module_name)
+        except ImportError as exc:
+            raise ImportError(
+                f"{self.module_name} must be installed to use the "
+                f"'{self.name}' validation backend."
+            ) from exc
+
+    def get_validator(self, schema: Schema) -> Any:
+        raise NotImplementedError
+
+    def validate(self, json: Union[list, dict]):
+        raise NotImplementedError
+
+    def __call__(self, schema: Schema) -> Validator:
+        """Build and return a validation hook.
+
+        # Parameters
+        schema (dict): a schema compliant with jsonschema-draft4.
+
+        # Returns
+        validator (callable): a hook function to be used in a before hook.
+
+        # Raises
+        ImportError:
+            If `jsonschema` is not installed.
+        SchemaError:
+            If the provided `schema` is invalid.
+        """
+        self.load()
+        self.validator = self.get_validator(schema)
+
+        async def validate(req: Request, res: Response, params: dict):
+            json = await req.json()
+            await self.validate(json)
+
+        return validate
+
+
+class FastJSONSchemaBackend(ValidationBackend):
+    """Validation backend backed by `fastjsonschema`."""
+
+    name = module_name = "fastjsonschema"
+
+    def get_validator(self, schema):
+        try:
+            return self.module.compile(schema)
+        except self.module.JsonSchemaDefinitionException as exc:
+            raise SchemaError(schema) from exc
+        except Exception as exc:
+            raise SchemaError(schema) from exc
+
+    def validate(self, json: Union[list, dict]):
+        try:
+            self.validator(json)
+        except self.module.JsonSchemaException as exc:
+            raise ValidationError(exc.message) from exc
+
+
+class JSONSchemaBackend(ValidationBackend):
+    """Validation backend backed by `jsonschema`."""
+
+    name = module_name = "jsonschema"
+
+    def get_validator(self, schema: Schema) -> Validator:
         from jsonschema.validators import validators
-        from jsonschema import SchemaError
-    except ImportError as e:
-        raise ImportError(
-            "jsonschema must be installed to use the "
-            "'jsonschema' validation backend"
-        ) from e
 
-    # TODO: watch for more recent drafts when v3.0 comes out.
-    validator = validators["draft4"]
-    try:
-        validator.check_schema(schema)
-    except SchemaError:
-        raise
+        draft4 = validators["draft4"]
 
-    async def validate(req: Request, res: Response, params: dict):
-        json = await req.json()
-        errors = list(validator(schema).iter_errors(json))
+        try:
+            draft4.check_schema(schema)
+        except self.module.SchemaError as exc:
+            raise SchemaError(schema) from exc
+
+        return draft4(schema)
+
+    def validate(self, json: Union[dict, list]):
+        errors = list(self.validator.iter_errors(json))
         if errors:
             raise ValidationError(errors=[e.message for e in errors])
 
-    return validate
+
+def get_backends() -> Dict[str, ValidationBackend]:
+    return {cls.name: cls() for cls in _Meta.classes}
 
 
-class JSONValidationBackend:
+class JSONValidationBackendAttr:
     # Descriptor for the API's `json_validation_backend` attribute.
 
     def __init__(self):

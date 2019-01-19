@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "32b086a198287af24ac2f77f8f5dc53bb4ca88c53a498a9627787293190bb4fa"
+            "sha256": "e4c7b432cdc8498c720f454c107a2b7cf43787d98d35eea23eb1ce3462368fec"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -129,10 +129,10 @@
         },
         "uvicorn": {
             "hashes": [
-                "sha256:ab570ef3b088ddf30a8a2bb97f624c4eabe246301c2f21e38a48c82bfa3d8f52"
+                "sha256:52cd4652c84443a0972cbdc51982f8909aa3ed97f037aaf04b33ff1683111f18"
             ],
             "index": "pypi",
-            "version": "==0.3.24"
+            "version": "==0.3.25"
         },
         "uvloop": {
             "hashes": [
@@ -288,6 +288,13 @@
             ],
             "version": "==5.0a4"
         },
+        "fastjsonschema": {
+            "hashes": [
+                "sha256:d7f25800f89640928b2537cf5294ff2899c6f25be9f525267367fe4dd46c7a7d"
+            ],
+            "index": "pypi",
+            "version": "==2.8"
+        },
         "h11": {
             "hashes": [
                 "sha256:acca6a44cb52a32ab442b1779adf0875c443c689e9e028f8d831a3769f9c5208",
@@ -303,10 +310,10 @@
         },
         "identify": {
             "hashes": [
-                "sha256:08826e68e39e7de53cc2ddd8f6228a4e463b4bacb20565e5301c3ec690e68d27",
-                "sha256:2364e24a7699fea0dc910e90740adbab43eef3746eeea4e016029c34123ce66d"
+                "sha256:0b2bb67c857b8048d979caeef4d20a3dfdb0337f154d16a8f9e31cd6e04ae554",
+                "sha256:113622f73da90a723e9baf764553f807051ad80c3a9e8a7edd15aa4309861f4d"
             ],
-            "version": "==1.1.8"
+            "version": "==1.2.0"
         },
         "idna": {
             "hashes": [
@@ -577,10 +584,10 @@
         },
         "uvicorn": {
             "hashes": [
-                "sha256:ab570ef3b088ddf30a8a2bb97f624c4eabe246301c2f21e38a48c82bfa3d8f52"
+                "sha256:52cd4652c84443a0972cbdc51982f8909aa3ed97f037aaf04b33ff1683111f18"
             ],
             "index": "pypi",
-            "version": "==0.3.24"
+            "version": "==0.3.25"
         },
         "uvloop": {
             "hashes": [
@@ -641,9 +648,9 @@
         },
         "wrapt": {
             "hashes": [
-                "sha256:e03f19f64d81d0a3099518ca26b04550026f131eced2e76ced7b85c6b8d32128"
+                "sha256:4aea003270831cceb8a90ff27c4031da6ead7ec1886023b80ce0dfe0adf61533"
             ],
-            "version": "==1.11.0"
+            "version": "==1.11.1"
         },
         "zipp": {
             "hashes": [
