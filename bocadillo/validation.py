@@ -12,13 +12,14 @@ Schema = Dict
 class ValidationError(HTTPError):
     """Raised when validating a JSON object has failed.
 
-    This is a subclass of `HTTPError` that uses a `400 Bad Request` status.
+    This is a subclass of [HTTPError] that uses a `400 Bad Request` status.
+
+    [HTTPError]: ./errors.md#httperror
 
     # Parameters
-    error (str):
-        An error message. If given, it is appended to any
-    errors (list of str):
-        A list of error messages used as the error `detail`.
+    errors (str or list of str):
+        A list of error messages used as the error `detail`. If a single
+        string is given, it is converted to a list or one error message.
     """
 
     def __init__(self, errors: Union[str, List[str]]):
@@ -53,13 +54,23 @@ class ValidationBackend(metaclass=_Meta):
     """Base class for validation backends.
 
     A validation backend is essentially a callable that takes a `schema` as
-    input and returns a `before` hook.
-
-    It should be stateless to be reusable for various schemas.
+    input and returns a [before hook].
 
     This base class also includes a lazy dependency loading mechanism.
     You may change this behavior by overriding `.load()`.
 
+    ::: warning
+    Validation backends should be stateless to be reusable for various
+    schemas.
+    :::
+
+    ::: tip
+    Subclasses of this base class are registered and made available
+    through [get_backends()](#get-backends).
+    :::
+
+    [before hook]: ../guides/http/hooks.md
+    
     # Attributes
     name (str): the name of the validation backend.
     dependency (str):
@@ -67,9 +78,6 @@ class ValidationBackend(metaclass=_Meta):
     module (any or None):
         The lazy-loaded dependency module.
         Non-`None` once `.load()` has been called.
-
-    # See Also
-    - [hooks](./hooks.md)
     """
 
     root = True
@@ -158,7 +166,10 @@ class ValidationBackend(metaclass=_Meta):
 
 
 class FastJSONSchemaBackend(ValidationBackend):
-    """Validation backend backed by `fastjsonschema`."""
+    """Validation backend backed by [fastjsonschema].
+    
+    [fastjsonschema]: https://github.com/horejsek/python-fastjsonschema
+    """
 
     dependency = "fastjsonschema"
 
@@ -178,7 +189,10 @@ class FastJSONSchemaBackend(ValidationBackend):
 
 
 class JSONSchemaBackend(ValidationBackend):
-    """Validation backend backed by `jsonschema`."""
+    """Validation backend backed by [jsonschema].
+
+    [jsonschema]: https://github.com/Julian/jsonschema
+    """
 
     dependency = "jsonschema"
     version = "draft4"
@@ -202,15 +216,20 @@ class JSONSchemaBackend(ValidationBackend):
 
 
 def get_backends() -> Dict[str, ValidationBackend]:
+    """Return a dictionary containing the registered validation backends.
+
+    # Returns
+    backends (dict): a mapping of backend names to backend instances.
+    """
     return {cls.name: cls() for cls in _Meta.classes}
 
 
-class APIAttr:
-    # Descriptor for the API's `json_validation_backend` attribute.
+class BackendAttr:
+    # Descriptor for a hybrid validation backend attribute.
 
-    def __init__(self, registry_attr: str):
+    def __init__(self, store: str):
         self.backend_name: Optional[str] = None
-        self.registry_attr = registry_attr
+        self.store = store
 
     def __get__(self, obj, obj_type):
         # Return an object that behaves like a string (for reading the value)
@@ -219,11 +238,11 @@ class APIAttr:
         this = self
 
         class Decorator(str):
-            def __call__(self, value):
+            def __call__(self, backend):
                 nonlocal this
-                getattr(obj, this.registry_attr)[value.__name__] = value
-                this.backend_name = value.__name__
-                return value
+                getattr(obj, this.store)[backend.__name__] = backend
+                this.backend_name = backend.__name__
+                return backend
 
         return Decorator(self.backend_name)
 

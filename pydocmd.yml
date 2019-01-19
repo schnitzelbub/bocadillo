@@ -37,6 +37,13 @@ generate:
       - bocadillo.staticfiles+
   - templates.md:
       - bocadillo.templates++
+  - validation.md:
+      - bocadillo.validation.ValidationError
+      - bocadillo.validation.SchemaError
+      - bocadillo.validation.ValidationBackend+
+      - bocadillo.validation.FastJSONSchemaBackend
+      - bocadillo.validation.JSONSchemaBackend
+      - bocadillo.validation.get_backends
   - views.md:
       - bocadillo.views++
   - websockets.md:

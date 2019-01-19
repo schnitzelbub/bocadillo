@@ -4,21 +4,21 @@ from bocadillo import API, ValidationError
 from bocadillo.validation import UnknownValidationBackend
 
 
-def test_backend_defaults_to_api_default_backend(jsonapi: API):
-    jsonapi.json_validation_backend = "foo"
-    with pytest.raises(UnknownValidationBackend) as ctx:
-        jsonapi.validate({})
-    assert ctx.value.args[0] == "foo"
-
-
-def test_default_backend_is_fastjsonschema(jsonapi: API):
-    assert jsonapi.json_validation_backend == "fastjsonschema"
+def test_default_backend(jsonapi: API):
+    assert jsonapi.json_validation_backend == "jsonschema"
 
 
 def test_unknown_backend_raises_error(jsonapi: API):
     with pytest.raises(UnknownValidationBackend) as ctx:
         jsonapi.validate({}, backend="foobar")
     assert ctx.value.args[0] == "foobar"
+
+
+def test_backend_defaults_to_api_default_backend(jsonapi: API):
+    jsonapi.json_validation_backend = "foo"
+    with pytest.raises(UnknownValidationBackend) as ctx:
+        jsonapi.validate({})
+    assert ctx.value.args[0] == "foo"
 
 
 def test_custom_validation_backend(jsonapi: API):

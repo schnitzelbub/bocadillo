@@ -95,11 +95,11 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         See also [Media](../guides/http/media.md).
     json_validation_backend (str):
         Which JSON validation backend will be used by `.validate()`.
-        Defaults to `"fastjsonschema"`.
+        Defaults to `"jsonschema"`.
     """
 
-    json_validation_backend = validation.APIAttr(
-        registry_attr="json_validation_backends"
+    json_validation_backend = validation.BackendAttr(
+        store="json_validation_backends"
     )
 
     def __init__(
@@ -114,7 +114,7 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         enable_gzip: bool = False,
         gzip_min_size: int = 1024,
         media_type: str = Media.JSON,
-        json_validation_backend: str = "fastjsonschema",
+        json_validation_backend: str = "jsonschema",
     ):
         super().__init__(templates_dir=templates_dir)
 
