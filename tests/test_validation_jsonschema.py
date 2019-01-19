@@ -3,10 +3,10 @@ import pytest
 from bocadillo import API
 from bocadillo.validation import SchemaError
 
-backends = ("jsonschema", "fastjsonschema")
+BACKENDS = ("jsonschema", "fastjsonschema")
 
 
-@pytest.mark.parametrize("backend", backends)
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_validate_using_jsonschema(jsonapi: API, backend):
     schema = {
         "title": "Product",
@@ -28,7 +28,7 @@ def test_validate_using_jsonschema(jsonapi: API, backend):
     assert "price" in errors[0]
 
 
-@pytest.mark.parametrize("backend", backends)
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_jsonschema_schema_is_validated(jsonapi: API, backend):
     with pytest.raises(SchemaError):
         jsonapi.validate({"properties": "fjkh"}, backend=backend)

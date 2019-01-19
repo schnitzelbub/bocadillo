@@ -98,7 +98,9 @@ class API(TemplatesMixin, metaclass=DocsMeta):
         Defaults to `"fastjsonschema"`.
     """
 
-    json_validation_backend = validation.JSONValidationBackendAttr()
+    json_validation_backend = validation.APIAttr(
+        registry_attr="json_validation_backends"
+    )
 
     def __init__(
         self,
@@ -377,12 +379,11 @@ class API(TemplatesMixin, metaclass=DocsMeta):
             backend = self.json_validation_backend
 
         try:
-            build_validator = self.json_validation_backends[backend]
-        except KeyError as e:
-            raise validation.UnknownValidationBackend(backend) from e
+            validate = self.json_validation_backends[backend]
+        except KeyError as exc:
+            raise validation.UnknownValidationBackend(backend) from exc
         else:
-            validate_json = build_validator(schema)
-            return hooks.before(validate_json)
+            return hooks.before(validate(schema))
 
     def add_middleware(self, middleware_cls, **kwargs):
         """Register a middleware class.
