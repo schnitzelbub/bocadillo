@@ -67,11 +67,21 @@ def test_use_url_for(api: API):
     @foo.route("/fez")
     async def fez(req, res):
         res.html = foo.template_string(
-            "<a href=\"{{ url_for('foo:bar') }}\">To bar</a>"
+            "<a href=\"{{ url_for('foo:bar') }}\">Fez to bar</a>"
+        )
+
+    @api.route("/baz")
+    async def baz(req, res):
+        res.html = api.template_string(
+            "<a href=\"{{ url_for('foo:bar') }}\">Baz to bar</a>"
         )
 
     api.recipe(foo)
 
     response = api.client.get("/foo/fez")
     assert response.status_code == 200
-    assert response.text == '<a href="/foo/bar">To bar</a>'
+    assert response.text == '<a href="/foo/bar">Fez to bar</a>'
+
+    response = api.client.get("/baz")
+    assert response.status_code == 200
+    assert response.text == '<a href="/foo/bar">Baz to bar</a>'
